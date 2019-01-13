@@ -1,0 +1,12 @@
+# ignore everything
+*
+
+# except gitignore
+!.gitignore
+
+# except shaders
+!*.glsl
+!*/
+
+# but ignore the default shader
+*/shader.glsl
