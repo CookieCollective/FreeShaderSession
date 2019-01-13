@@ -1,12 +1,11 @@
 # ignore everything
-*
+AntonShaders/*
 
 # except gitignore
 !.gitignore
 
 # except shaders
-!*.glsl
-!*/
+!AntonShaders/*.glsl
 
 # but ignore the default shader
-*/shader.glsl
+/AntonShaders/shader.glsl
