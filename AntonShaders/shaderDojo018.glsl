@@ -25,6 +25,12 @@ vec2 modA(vec2 p, float c)
   return vec2(cos(a),sin(a)) * length(p);
 }
 
+float smin(float a, float b, float k)
+{
+  float h = clamp(.5 + .5 * (b -a)/k,0.,1.);
+  return mix(b,a,h) - k * h *(1. - h);
+}
+
 mat2 rot(float a)
 {
   float sa = sin(a);  float ca  = cos(a);
@@ -36,7 +42,7 @@ mat2 rot(float a)
 float map(vec3 p, out float id)
 {
   id = 0.;
-  float dist  = 1000.;
+  float dist  = 10000.;
   vec3 cp = p;
   
   p.yz = modA(p.yz, 4.);
@@ -45,7 +51,6 @@ float map(vec3 p, out float id)
   
 
   float co = length(p.yz) - (1. + sin(p.x) * .8);
-  dist = min(dist , co);
 
   p = cp;
 
@@ -53,17 +58,20 @@ float map(vec3 p, out float id)
   for(float i  = 1.; i < 5.; ++i)
   {
     p.y += (sin(ti + p.x ) + cos(ti + p.z)) * .75;
-    dist = min(length(p) - 1., dist);
+    dist = smin(length(p) - .5, dist, 1.25);
     ti += i * .2;
-    p *= 1.2;
-    p.xz *= rot(.25);
-    p.yz *= rot(i);
-    p.x += .4;
+    p *= 1.1;
+    p.xz *= rot(.25 + i);
+    p.yz *= rot(i * 2.);
+    p.x += .6;
   }
+
+  if(co < .01) id = 1.;
+  dist = min(dist , co);
 
   float sph = length(cp) - 6.;
 
-  dist = max(dist,sph);
+//  dist = max(dist,sph);
 
   return dist;
 }
@@ -108,7 +116,10 @@ void main(void)
   uv -= 0.5;
   uv /= vec2(v2Resolution.y / v2Resolution.x, 1);
 
-  vec3 eye = vec3(0.,0.,-10.);
+  float di = mod(length(uv) + time * .15, 1.75);
+  float f = step(di, .15);
+
+  vec3 eye = vec3(0.,0.,-12.);
   vec3 sub = vec3(0.);
   vec3 cp = eye;
 
@@ -117,19 +128,33 @@ void main(void)
   vec3 rd = LookAt(eye, sub, uv);
   st = Ray(cp, rd, id);
 
+  if(st >= 1.) return;
+
   vec3 ld = normalize(sub - eye);
   vec3 norm = normal(cp);
   float li = dot(ld, norm);
 
-  li = 1. - li;
-  li = pow(li, 1.);
-
-
+  if(f < .5)
+  {
+    li = 1. - li;
+    li *= 1.5;
+  }
+  else
+{
+  li = pow(li, 2.);
+}
   norm.xy *= rot(time + cp.z);
   norm.xz *= rot(time + cp.y);
+
+  if(id > .5)
+  {
+    norm.yz *= rot(time + cp.x);
+  }
+
   out_color = vec4(norm, 0.) * li;
 
   
 
-  out_color *= (1. - st) * 2.;
+  out_color *= (1. - st) * (1. + f);
+
 }
