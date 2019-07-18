@@ -8,4 +8,4 @@ AntonShaders/*
 !AntonShaders/*.glsl
 
 # but ignore the default shader
-/AntonShaders/shader.glsl
+# /AntonShaders/shader.glsl
